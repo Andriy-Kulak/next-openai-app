@@ -1,79 +1,48 @@
 "use client";
 
-// import { seed } from "@/lib/seed";
-// import { sql } from "@vercel/postgres";
 import { useChat, Message } from "ai/react";
 import { useEffect, useState } from "react";
 
 export default function Chat() {
-  // let data;
-  // let startTime = Date.now();
-  // try {
-  //   data = await sql`SELECT * FROM users`;
-  // } catch (e: any) {
-  //   if (e.message === `relation "users" does not exist`) {
-  //     console.log(
-  //       "Table does not exist, creating and seeding it with dummy data now..."
-  //     );
-  //     // Table is not created yet
-  //     await seed();
-  //     startTime = Date.now();
-  //     data = await sql`SELECT * FROM users`;
-  //   } else {
-  //     throw e;
-  //   }
-  //  }
-
   const [initialMessages, setInitalMessages] = useState<Message[]>([]);
 
   const { messages, input, handleInputChange, handleSubmit } = useChat({
     initialMessages,
   });
 
-  // console.log("data --->", data);
-  console.log("messages ===>", JSON.stringify(messages));
-  console.log("messages 2 ===>", JSON.stringify(messages, null, 2));
+  const getAllMessages = async () => {
+    const resp = await fetch("/api/chat", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+        Accept: "application/json",
+      },
+    });
+    const jsonResp = (await resp.json()) as Message[];
+    console.log("response get All Messages", jsonResp);
+
+    setInitalMessages(jsonResp);
+  };
+
+  const clearHistory = async () => {
+    console.log("cleared data 000");
+    await fetch("/api/clear", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+        Accept: "application/json",
+      },
+    });
+    setInitalMessages([]);
+
+    // refershing the page so we clear `messages` history
+    window.location.reload();
+  };
 
   useEffect(() => {
-    setTimeout(() => {
-      setInitalMessages([
-        {
-          content: "where does the word emerging come from?",
-          role: "user",
-          id: "eudc3Qh",
-        },
-        {
-          id: "dCq3JPi",
-          content:
-            'The word "emerging" comes from the Old French word "emerger" which means "to rise up, emerge." It is derived from the Latin word "emergere" which means "to rise out or up."',
-          role: "assistant",
-        },
-        {
-          content: "what century would that come from?",
-          role: "user",
-          id: "4sk2zmK",
-        },
-        {
-          id: "zBSUKZD",
-
-          content:
-            'The word "emerging" comes from the Old French word "emerger," which was in use from the 12th to the 15th century. The Latin word from which it is derived, "emergere," dates back to ancient times.',
-          role: "assistant",
-        },
-        {
-          content: "gracias amigo~",
-          role: "user",
-
-          id: "6aC6f2T",
-        },
-        {
-          id: "idrwElv",
-
-          content: "¡De nada!",
-          role: "assistant",
-        },
-      ]);
-    }, 1_000);
+    getAllMessages();
   }, []);
 
   return (
@@ -95,6 +64,7 @@ export default function Chat() {
           onChange={handleInputChange}
         />
       </form>
+      <button onClick={clearHistory}>Clear Data</button>
     </div>
   );
 }

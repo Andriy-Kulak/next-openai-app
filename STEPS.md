@@ -5,3 +5,7 @@
 5. Setup github + deploy
 6. Make sure env variable is setup in prod
 7. Setup postgres (By going to vercel Storage). You don't have vercel installed, install globally ` npm i --g vercel`
+
+Write Insert for both input and result
+On Refresh fetch the request
+Add A clear DB button
