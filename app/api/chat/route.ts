@@ -1,6 +1,7 @@
 // ./app/api/chat/route.ts
 import { Configuration, OpenAIApi } from "openai-edge";
 import { OpenAIStream, StreamingTextResponse } from "ai";
+import { seed } from "@/lib/seed";
 
 // Create an OpenAI API client (that's edge friendly!)
 const config = new Configuration({
@@ -14,6 +15,10 @@ export const runtime = "edge";
 export async function POST(req: Request) {
   // Extract the `prompt` from the body of the request
   const { messages } = await req.json();
+
+  console.log("seed start");
+  await seed();
+  console.log("seed finish");
 
   console.log("messages api ===>", messages);
 
