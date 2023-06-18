@@ -20,13 +20,12 @@ export default function Chat() {
       },
     });
     const jsonResp = (await resp.json()) as Message[];
-    console.log("response get All Messages", jsonResp);
 
     setInitalMessages(jsonResp);
   };
 
   const clearHistory = async () => {
-    console.log("cleared data 000");
+    // fetch request for
     await fetch("/api/clear", {
       method: "POST",
       headers: {
@@ -46,25 +45,35 @@ export default function Chat() {
   }, []);
 
   return (
-    <div className="flex flex-col w-full max-w-md py-24 mx-auto stretch">
-      {messages.length > 0
-        ? messages.map((m) => (
-            <div key={m.id} className="whitespace-pre-wrap">
-              {m.role === "user" ? "User: " : "AI: "}
-              {m.content}
-            </div>
-          ))
-        : null}
+    <>
+      <div className="fixed top-0 right-0 m-4">
+        <button
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded "
+          onClick={clearHistory}
+        >
+          Clear Data
+        </button>
+      </div>
 
-      <form onSubmit={handleSubmit}>
-        <input
-          className="fixed bottom-0 w-full max-w-md p-2 mb-8 border border-gray-300 rounded shadow-xl"
-          value={input}
-          placeholder="Say something..."
-          onChange={handleInputChange}
-        />
-      </form>
-      <button onClick={clearHistory}>Clear Data</button>
-    </div>
+      <div className="flex flex-col w-full max-w-md py-24 mx-auto stretch">
+        {messages.length > 0
+          ? messages.map((m) => (
+              <div key={m.id} className="whitespace-pre-wrap">
+                {m.role === "user" ? "User: " : "AI: "}
+                {m.content}
+              </div>
+            ))
+          : null}
+
+        <form onSubmit={handleSubmit}>
+          <input
+            className="fixed bottom-0 w-full max-w-md p-2 mb-8 border border-gray-300 rounded shadow-xl"
+            value={input}
+            placeholder="Say something..."
+            onChange={handleInputChange}
+          />
+        </form>
+      </div>
+    </>
   );
 }
