@@ -1,6 +1,9 @@
 // ./app/api/chat/route.ts
 import { Configuration, OpenAIApi } from "openai-edge";
 import { OpenAIStream, StreamingTextResponse } from "ai";
+import { createTable, getAll, insert } from "@/lib/queries";
+import { RoleType } from "@/ts-types";
+import { NextResponse } from "next/server";
 
 // Create an OpenAI API client (that's edge friendly!)
 const config = new Configuration({
@@ -15,7 +18,8 @@ export async function POST(req: Request) {
   // Extract the `prompt` from the body of the request
   const { messages } = await req.json();
 
-  console.log("messages api ===>", messages);
+  console.log("create table");
+  await createTable();
 
   // Ask OpenAI for a streaming chat completion given the prompt
   const response = await openai.createChatCompletion({
@@ -28,10 +32,33 @@ export async function POST(req: Request) {
   });
 
   // Convert the response into a friendly text-stream
-  const stream = OpenAIStream(response);
+  const stream = OpenAIStream(response, {
+    onStart: async () => {
+      // This callback is called when the stream starts
+      // You can use this to save the prompt to your database
+      if (messages.length > 0) {
+        let lastMessageContent = messages[messages.length - 1].content;
+        const resp = await insert({
+          role: RoleType.user,
+          text: lastMessageContent,
+        });
+      }
+    },
+    onCompletion: async (asistantResponse: string) => {
+      // This callback is called when the stream completes
+      // You can use this to save the final completion to your database
+      const resp = await insert({
+        role: RoleType.assistant,
+        text: asistantResponse,
+      });
+    },
+  });
 
-  // console.log("yyyyy resp --->", response);
-  // console.log("yyyyy stream --->", stream);
-  // Respond with the stream
   return new StreamingTextResponse(stream);
+}
+
+export async function GET(req: Request) {
+  const resp = await getAll();
+
+  return NextResponse.json(resp?.rows || [], { status: 200 });
 }
